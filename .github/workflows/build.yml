@@ -1,0 +1,26 @@
+name: Build Container
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: set version tag
+        run: sed -n 's/FROM.*:\([\.0123456789-]*\).*/::set-env name=VERSION_TAG::\1/p' Dockerfile
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v1.1.0
+        with:
+          tags: latest, ${{ env.VERSION_TAG }}
+          repository: ubi8-min-python
+          username: ${{ secrets.ARTIFACTORY_USERNAME }}
+          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          registry: cuartifacts-platform-engineering-docker-local.jfrog.io
