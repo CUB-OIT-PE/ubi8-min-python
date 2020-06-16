@@ -1,0 +1,22 @@
+name: Bump Base Container Version
+
+on:
+  schedule:
+    - cron: 0 0 * 0 0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: bump base version
+        run: bash bump_docker_base.sh
+
+      - uses: EndBug/add-and-commit@v4
+        with:
+          add: 'Dockerfile'
+          author_name: 'Github version bumperator'
+          author_email: 'wiha1292@colorado.edu'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
