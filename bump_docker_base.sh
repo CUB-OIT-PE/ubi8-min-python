@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# This script bumps the version number pinned on the FROM line of a Dockerfile
+#
+# Author: wiha1292
+# Version: 1.0
+# Modified: June 18, 2020
 
 # looks like: FROM registry.access.redhat.com/ubi8-minimal:8.2-267 AS foobar
 FROM_LINE=$(grep -m 1 FROM Dockerfile)
@@ -19,7 +25,19 @@ CUR_VER_FMT=$(echo $CUR_VER | sed $GET_VER_FMT)
 REPO_HOST=$(dirname $IMG_BASE)
 IMG_NAME=$(basename $IMG_BASE)
 
-ALL_TAGS=$(curl -L https://${REPO_HOST}/v2/${IMG_NAME}/tags/list | jq '.tags' | jq -r '.[]' | sort -V -r)
+CURL_AUTH=''
+# assume that artifactory credentials are passed in env variables
+if [ -n $REPO_USERNAME ] && [ -n $REPO_PASSWORD ]; then
+    CURL_AUTH="-u ${REPO_USERNAME}:${REPO_PASSWORD}"
+fi
+
+# needed to handle curl failure
+set -o pipefail
+ALL_TAGS=$(curl ${CURL_AUTH} -L https://${REPO_HOST}/v2/${IMG_NAME}/tags/list | jq '.tags' | jq -r '.[]' | sort -V -r)
+if [ $? -ne 0 ]; then
+    echo "Failed pulling latest tags"
+    exit 1
+fi
 
 for tag in $ALL_TAGS; do
     tag_fmt=$(echo $tag | sed $GET_VER_FMT)
