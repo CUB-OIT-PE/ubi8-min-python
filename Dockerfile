@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8-minimal:8.2-301
+FROM registry.access.redhat.com/ubi8-minimal:8.2-339
 
 ENV APP_ROOT=/usr/src/app \
     PYTHON_PKG=python38 \
